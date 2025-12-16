@@ -62,6 +62,3 @@ O objetivo principal deste projeto é criar um sistema capaz de monitorar transa
 
 ## 📝 Como Rodar o Projeto
 
-Clone o repositório:
-```bash
-git clone https://github.com/leticiagiovannalopez/monitoramento-de-risco-operacional.git
