@@ -19,21 +19,26 @@ O objetivo principal deste projeto é criar um sistema capaz de monitorar transa
 
 ## 🧭 Roteiro do Projeto
 
-### ✅ Fase 1 — Fundação e Estrutura
+### ✅ Fase 1 — Fundação, Estrutura e Dados (Concluída)
+
 - [x] Criação do repositório e versionamento com Git
 - [x] Estrutura inicial do projeto
 - [x] README com definição do problema e objetivo
-- [ ] Definição do modelo de dados operacionais
-- [ ] Geração de dados simulados
+- [x] Definição do modelo de dados operacionais
+- [x] Geração de dados simulados de risco operacional
+- [x] Automação de geração de eventos sintéticos
+- [x] Consolidação dos eventos em DataFrame
+- [x] Análise exploratória inicial
+- [x] Distribuição de eventos por nível de risco (quantidade e percentual)
 
 ---
 
-### 🟡 Fase 2 — Análise de Risco Operacional
-- [ ] Criação do banco de dados (SQL)
-- [ ] Carga de dados operacionais simulados
-- [ ] Análises estatísticas com Python
-- [ ] Identificação de padrões fora do comportamento esperado
-- [ ] Regras simples de detecção de risco operacional
+### 🟡 Fase 2 — Análise de Risco Operacional (Em andamento)
+
+- [ ] Preparação dos dados para Machine Learning (X e y)
+- [ ] Treinamento de modelo de classificação de risco
+- [ ] Avaliação do modelo
+- [ ] Classificação automática de risco operacional
 
 ---
 
