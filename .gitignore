@@ -14,3 +14,8 @@ __pycache__/
 
 # Sistema
 .DS_Store
+
+# Configurações sensíveis (senha do banco)
+config.py
+.env
+```
