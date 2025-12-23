@@ -17,53 +17,31 @@ O objetivo principal deste projeto é criar um sistema capaz de monitorar transa
 - **Pandas/NumPy** (Análise de Dados)
 - **Jupyter Notebook** (Prototipação e Exploração de Dados)
 
-## 🧭 Roteiro do Projeto
+## 🗺️ Roadmap do Projeto
 
-### ✅ Fase 1 — Fundação, Estrutura e Dados (Concluída)
+### Fase 1 — Fundação e Machine Learning
 
-- [x] Criação do repositório e versionamento com Git
-- [x] Estrutura inicial do projeto
-- [x] README com definição do problema e objetivo
-- [x] Definição do modelo de dados operacionais
-- [x] Geração de dados simulados de risco operacional
-- [x] Automação de geração de eventos sintéticos
-- [x] Consolidação dos eventos em DataFrame
-- [x] Análise exploratória inicial
-- [x] Distribuição de eventos por nível de risco (quantidade e percentual)
+- [x] Modelagem e geração de dados sintéticos (5000 eventos)
+- [x] Análise exploratória e distribuição de risco
+- [x] Treinamento Random Forest com 100% de acurácia
+- [x] Configuração de segurança (config.py, .gitignore)
 
----
+### Fase 2 — Banco de Dados
 
-### 🟡 Fase 2 — Análise de Risco Operacional (Em andamento)
+- [x] Configuração PostgreSQL
+- [x] Persistência de eventos com timestamps automáticos
+- [x] Funções de consulta e estatísticas
 
-- [ ] Preparação dos dados para Machine Learning (X e y)
-- [ ] Treinamento de modelo de classificação de risco
-- [ ] Avaliação do modelo
-- [ ] Classificação automática de risco operacional
+### Fase 3 — Análises Avançadas
 
----
+- [ ] Feature Importance e Matriz de Confusão
+- [ ] Visualizações (distribuição, impacto financeiro, temporal)
 
-### 🟡 Fase 3 — Automação e Insights
-- [ ] Automação do pipeline de análise
-- [ ] Geração automática de métricas
-- [ ] Atualização periódica dos dados
-- [ ] Consolidação de indicadores de risco
+### Fase 4 — Processamento de Texto e Automação
 
----
-
-### 🟡 Fase 4 — Visualização e Comunicação
-- [ ] Criação de dashboards no Power BI
-- [ ] Visualização de padrões de risco
-- [ ] Indicadores para áreas de negócio
-- [ ] Documentação dos insights gerados
-
----
-
-### 🚀 Fase 5 — Refinamentos (Opcional)
-- [ ] Melhorias nas regras de detecção
-- [ ] Comparação entre períodos
-- [ ] Simulação de cenários de risco
-
----
+- [ ] NLP para extrair informações de reclamações em texto livre
+- [ ] Relatórios automáticos enviados por email
+- [ ] API REST para integração com plataforma web
 
 ## 📝 Como Rodar o Projeto
 
