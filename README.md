@@ -2,46 +2,99 @@
 
 ## 📊 Descrição do Projeto
 
-Este projeto visa implementar uma solução para o monitoramento de **risco operacional** em transações financeiras e atividades bancárias. Através de uma análise detalhada e automação de dados, o sistema busca identificar padrões e comportamentos anômalos que possam representar riscos operacionais, com foco na segurança e na mitigação de falhas.
+Este projeto visa implementar uma solução completa para o monitoramento de **risco operacional** em transações financeiras e atividades bancárias. 
+
+O sistema utiliza **Machine Learning** para classificar automaticamente eventos operacionais (falhas de sistema, fraudes, erros de processo) em quatro níveis de criticidade, resolvendo o problema de **triagem manual** de milhares de ocorrências diárias. Através da análise multidimensional considerando impacto financeiro, clientes afetados, tempo de indisponibilidade e criticidade do sistema, o projeto automatiza a priorização de ações corretivas, reduzindo tempo de resposta em eventos críticos e evitando perdas financeiras.
+
+Além da classificação automática, o sistema conta com **persistência em PostgreSQL** para análise histórica e futuramente integrará **IA Generativa** (assistente Yoyo) para auxiliar gestores na triagem e resolução de eventos através de recomendações inteligentes e interação conversacional.
 
 ## 💡 Objetivo
 
-O objetivo principal deste projeto é criar um sistema capaz de monitorar transações financeiras e outras atividades bancárias, destacando possíveis irregularidades que possam comprometer a segurança ou a integridade operacional do banco. Além disso, serão implementadas ferramentas de visualização de dados para facilitar a análise de riscos e a comunicação com as equipes de negócios.
+O objetivo principal é criar um sistema capaz de:
+- Classificar automaticamente eventos de risco operacional
+- Priorizar ações baseado em impacto real (financeiro e operacional)
+- Identificar padrões e comportamentos anômalos que possam representar riscos
+- Auxiliar gestores com recomendações inteligentes de resolução
+- Facilitar análise de riscos através de dados estruturados e métricas confiáveis
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Python** (Análise de Dados, Automação de Processos)
-- **SQL** (Banco de Dados Relacional)
-- **Power BI** (Visualização de Dados)
+- **Python** (Análise de Dados, Machine Learning)
+- **Scikit-learn** (Random Forest, métricas)
+- **SMOTE** (Balanceamento de classes)
+- **PostgreSQL** (Banco de Dados Relacional)
+- **Pandas/NumPy** (Manipulação de dados)
+- **Matplotlib** (Visualização)
+- **Jupyter Notebook** (Prototipação e Exploração)
 - **GitHub** (Controle de Versão)
-- **Pandas/NumPy** (Análise de Dados)
-- **Jupyter Notebook** (Prototipação e Exploração de Dados)
 
 ## 🗺️ Roadmap do Projeto
 
-### Fase 1 — Fundação e Machine Learning
+### ✅ Fase 1 — Fundação e Machine Learning (COMPLETA)
 
-- [x] Modelagem e geração de dados sintéticos (5000 eventos)
-- [x] Análise exploratória e distribuição de risco
-- [x] Treinamento Random Forest com 100% de acurácia
-- [x] Configuração de segurança (config.py, .gitignore)
+- [x] Geração de dados sintéticos realistas (5000 eventos)
+- [x] Sistema de classificação multidimensional com 4 dimensões ponderadas
+- [x] Random Forest com SMOTE para balanceamento
+- [x] Threshold customizado (30%) otimizado para recall crítico
+- [x] Feature Importance e documentação de custo assimétrico
+- [x] Seeds fixadas (reprodutibilidade)
 
-### Fase 2 — Banco de Dados
+### ✅ Fase 2 — Banco de Dados (COMPLETA)
 
-- [x] Configuração PostgreSQL
+- [x] Configuração PostgreSQL com config.py seguro
 - [x] Persistência de eventos com timestamps automáticos
-- [x] Funções de consulta e estatísticas
+- [x] Campo status para acompanhamento (pendente/em_andamento/resolvido)
+- [x] 5000 eventos salvos com classificação
 
-### Fase 3 — Análises Avançadas
+### 🔲 Fase 3 — IA Generativa e Assistente Yoyo
 
-- [ ] Feature Importance e Matriz de Confusão
-- [ ] Visualizações (distribuição, impacto financeiro, temporal)
+- [ ] Sistema de triagem inteligente por prioridade
+- [ ] Chatbot Yoyo para gestão de eventos
+- [ ] Recomendações de ação contextualizadas
+- [ ] Atualização de status conversacional
 
-### Fase 4 — Processamento de Texto e Automação
+### 🔲 Fase 4 — Interface Web e Visualizações
 
-- [ ] NLP para extrair informações de reclamações em texto livre
-- [ ] Relatórios automáticos enviados por email
-- [ ] API REST para integração com plataforma web
+- [ ] Dashboard em tempo real
+- [ ] Gráficos interativos (distribuição, impacto, temporal)
+- [ ] Área pública (registro de reclamações)
+- [ ] Área restrita (gestão com autenticação)
+
+### 🔲 Fase 5 — Otimizações e Deploy
+
+- [ ] Grid Search para hiperparâmetros
+- [ ] Ensemble de modelos
+- [ ] API REST para integração
+- [ ] Containerização e deploy
 
 ## 📝 Como Rodar o Projeto
 
+### Pré-requisitos
+```bash
+Python 3.10+
+PostgreSQL 12+
+Jupyter Notebook
+```
+
+### Instalação
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/monitoramento-risco-operacional.git
+
+# Instale as dependências
+pip install pandas numpy scikit-learn psycopg2 matplotlib imbalanced-learn
+
+# Configure PostgreSQL em config/config.py
+
+# Execute o notebook
+jupyter notebook notebooks/01_exploracao_inicial.ipynb
+```
+
+## 🎯 Status do Projeto
+
+**Fase Atual:** 2/5 completas  
+**Próximo Milestone:** IA Generativa (Yoyo)  
+
+---
+
+**Desenvolvido por Yoyo 💜**
