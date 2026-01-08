@@ -46,11 +46,11 @@ O objetivo principal é criar um sistema capaz de:
 - [x] Campo status para acompanhamento (pendente/em_andamento/resolvido)
 - [x] 5000 eventos salvos com classificação
 
-### 🔲 Fase 3 — IA Generativa e Assistente Yoyo
+### 🔲 Fase 3 — IA Generativa e Assistente Yoyo (em andamento)
 
-- [ ] Sistema de triagem inteligente por prioridade
-- [ ] Chatbot Yoyo para gestão de eventos
-- [ ] Recomendações de ação contextualizadas
+- [x] Sistema de triagem inteligente por prioridade
+- [x] Chatbot Yoyo para gestão de eventos
+- [x] Recomendações de ação contextualizadas
 - [ ] Atualização de status conversacional
 
 ### 🔲 Fase 4 — Interface Web e Visualizações
