@@ -1,0 +1,252 @@
+.section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--spacing-lg);
+}
+
+.card {
+  position: relative;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  animation: fadeInUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-md);
+}
+
+.iconWrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-normal);
+}
+
+.emoji {
+  font-size: 1.25rem;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.value {
+  font-size: 2.25rem;
+  font-weight: 300;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cardGlow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.15;
+  pointer-events: none;
+  transition: opacity var(--transition-normal);
+}
+
+.card:hover .cardGlow {
+  opacity: 0.25;
+}
+
+/* Variant: Primary */
+.primary {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.primary:hover {
+  box-shadow: var(--shadow-primary);
+  border-color: rgba(99, 102, 241, 0.5);
+}
+
+.primary .iconWrapper {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: var(--color-primary);
+}
+
+.primary .value {
+  color: var(--color-primary);
+}
+
+.primary .label {
+  color: var(--color-text-secondary);
+}
+
+.primary .cardGlow {
+  background-color: var(--color-primary);
+}
+
+/* Variant: Critical */
+.critical {
+  border-color: var(--color-risk-critical-border);
+}
+
+.critical:hover {
+  box-shadow: var(--shadow-critical);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.critical .iconWrapper {
+  background-color: var(--color-risk-critical-bg);
+  color: var(--color-risk-critical);
+}
+
+.critical .value {
+  color: var(--color-risk-critical);
+}
+
+.critical .label {
+  color: var(--color-text-secondary);
+}
+
+.critical .cardGlow {
+  background-color: var(--color-risk-critical);
+}
+
+/* Variant: High */
+.high {
+  border-color: var(--color-risk-high-border);
+}
+
+.high:hover {
+  box-shadow: var(--shadow-high);
+  border-color: rgba(249, 115, 22, 0.5);
+}
+
+.high .iconWrapper {
+  background-color: var(--color-risk-high-bg);
+  color: var(--color-risk-high);
+}
+
+.high .value {
+  color: var(--color-risk-high);
+}
+
+.high .label {
+  color: var(--color-text-secondary);
+}
+
+.high .cardGlow {
+  background-color: var(--color-risk-high);
+}
+
+/* Variant: Medium */
+.medium {
+  border-color: var(--color-risk-medium-border);
+}
+
+.medium:hover {
+  box-shadow: var(--shadow-medium);
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.medium .iconWrapper {
+  background-color: var(--color-risk-medium-bg);
+  color: var(--color-risk-medium);
+}
+
+.medium .value {
+  color: var(--color-risk-medium);
+}
+
+.medium .label {
+  color: var(--color-text-secondary);
+}
+
+.medium .cardGlow {
+  background-color: var(--color-risk-medium);
+}
+
+/* Variant: Low */
+.low {
+  border-color: var(--color-risk-low-border);
+}
+
+.low:hover {
+  box-shadow: var(--shadow-low);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.low .iconWrapper {
+  background-color: var(--color-risk-low-bg);
+  color: var(--color-risk-low);
+}
+
+.low .value {
+  color: var(--color-risk-low);
+}
+
+.low .label {
+  color: var(--color-text-secondary);
+}
+
+.low .cardGlow {
+  background-color: var(--color-risk-low);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .value {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

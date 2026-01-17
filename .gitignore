@@ -1,21 +1,28 @@
-# Ambiente virtual
 venv/
-.env/
-
-# Cache do Python
+.venv/
 __pycache__/
 *.pyc
-
-# Jupyter
 .ipynb_checkpoints/
 
-# VS Code
-.vscode/
-
-# Sistema
-.DS_Store
-
-# Configurações sensíveis (senha do banco)
-config.py
 .env
-```
+.env.*
+!.env.example
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
+
+config.py
+
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+frontend/*.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
