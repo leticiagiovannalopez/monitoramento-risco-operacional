@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchEventos } from '../services/api';
 
-export function useEvents(filters = {}) {
+export function useEvents(filters) {
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,7 +32,7 @@ export function useEvents(filters = {}) {
       setLoading(true);
       setError(null);
 
-      const data = await fetchEventos(filters);
+      const data = await fetchEventos(filters ?? {});
       
       setEventos(data.eventos || []);
       setTotal(data.total || 0);
