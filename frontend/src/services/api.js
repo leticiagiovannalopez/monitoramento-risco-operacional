@@ -42,11 +42,15 @@ export async function fetchEventoById(eventoId) {
   }
 }
 
-export async function sendChatMessage(mensagem, contexto_tela = null) {
+export async function sendChatMessage(mensagem, contexto_tela = null, historico = null, nome_usuario = null) {
   try {
     const response = await api.post('/api/yoyo/chat', {
       mensagem,
-      contexto_tela
+      contexto_tela,
+      historico,
+      nome_usuario
+    }, {
+      timeout: 30000
     });
     return response.data;
   } catch (error) {

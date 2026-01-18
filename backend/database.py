@@ -23,11 +23,11 @@ def get_eventos(data_inicio=None, data_fim=None, nivel_risco=None):
     
     query = """
 SELECT
-  evento_id, data_evento, nivel_risco, tipo_evento,
-  descricao, impacto_financeiro, clientes_afetados,
-  tempo_indisponibilidade, area_responsavel, acao_imediata,
-  status_resolucao, prazo_resolucao, observacoes,
-  data_criacao, data_atualizacao, usuario_responsavel, tags
+  evento_id, data_evento, data_resolucao, tempo_resolucao_horas,
+  nivel_risco, descricao, impacto_financeiro, impacto_cliente,
+  clientes_afetados, tempo_indisponibilidade, frequencia_evento,
+  criticidade_sistema, falha_processo, fraude_interna, recorrencia,
+  status, created_at
 FROM eventos_risco
 WHERE 1=1
 """
@@ -51,10 +51,10 @@ WHERE 1=1
     conn.close()
     
     colunas = ['evento_id', 'data_evento', 'data_resolucao', 'tempo_resolucao_horas',
-            'nivel_risco', 'impacto_financeiro', 'impacto_cliente', 
-            'clientes_afetados', 'tempo_indisponibilidade', 'frequencia_evento',
-            'criticidade_sistema', 'falha_processo', 'fraude_interna', 
-            'recorrencia', 'status', 'created_at']
+               'nivel_risco', 'descricao', 'impacto_financeiro', 'impacto_cliente', 
+               'clientes_afetados', 'tempo_indisponibilidade', 'frequencia_evento',
+               'criticidade_sistema', 'falha_processo', 'fraude_interna', 
+               'recorrencia', 'status', 'created_at']
     
     return [dict(zip(colunas, evento)) for evento in eventos]
 
@@ -64,25 +64,25 @@ def get_evento_by_id(evento_id):
     resultado = conn.run(
     """
     SELECT
-      evento_id, data_evento, nivel_risco, tipo_evento,
-      descricao, impacto_financeiro, clientes_afetados,
-      tempo_indisponibilidade, area_responsavel, acao_imediata,
-      status_resolucao, prazo_resolucao, observacoes,
-      data_criacao, data_atualizacao, usuario_responsavel, tags
-    FROM eventos_risco
-    WHERE evento_id = :evento_id
-    """,
-    evento_id=evento_id
+          evento_id, data_evento, data_resolucao, tempo_resolucao_horas,
+          nivel_risco, descricao, impacto_financeiro, impacto_cliente,
+          clientes_afetados, tempo_indisponibilidade, frequencia_evento,
+          criticidade_sistema, falha_processo, fraude_interna, recorrencia,
+          status, created_at
+        FROM eventos_risco
+        WHERE evento_id = :evento_id
+        """,
+        evento_id=evento_id
 )
     
     conn.close()
 
     if resultado:
-        colunas = ['evento_id', 'data_evento', 'nivel_risco', 'tipo_evento', 
-                   'descricao', 'impacto_financeiro', 'clientes_afetados', 
-                   'tempo_indisponibilidade', 'area_responsavel', 'acao_imediata',
-                   'status_resolucao', 'prazo_resolucao', 'observacoes',
-                   'data_criacao', 'data_atualizacao', 'usuario_responsavel', 'tags']
+        colunas = ['evento_id', 'data_evento', 'data_resolucao', 'tempo_resolucao_horas',
+                   'nivel_risco', 'descricao', 'impacto_financeiro', 'impacto_cliente', 
+                   'clientes_afetados', 'tempo_indisponibilidade', 'frequencia_evento',
+                   'criticidade_sistema', 'falha_processo', 'fraude_interna', 
+                   'recorrencia', 'status', 'created_at']
         return dict(zip(colunas, resultado[0]))
     
     return None

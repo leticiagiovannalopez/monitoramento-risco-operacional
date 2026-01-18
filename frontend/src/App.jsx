@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Header,
   KPICards,
@@ -12,11 +12,34 @@ import { useEvents } from './hooks/useEvents';
 import { groupEventsByDate, calculateDistribution } from './utils/utils';
 import styles from './App.module.css';
 
+function calcularDatasDoPeríodo(periodo) {
+  const hoje = new Date();
+  const dataFim = hoje.toISOString().split('T')[0];
+  let dataInicio;
+
+  const diasMap = {
+    '7d': 7,
+    '15d': 15,
+    '30d': 30,
+    '3m': 90,
+    '6m': 180,
+    '12m': 365
+  };
+
+  const dias = diasMap[periodo] || 30;
+  const dataInicioDate = new Date(hoje);
+  dataInicioDate.setDate(dataInicioDate.getDate() - dias);
+  dataInicio = dataInicioDate.toISOString().split('T')[0];
+
+  return { data_inicio: dataInicio, data_fim: dataFim };
+}
+
 function App() {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedDate, setSelectedDate] = useState('');
 
-  const { eventos, loading, error, kpis } = useEvents();
+  const filters = useMemo(() => calcularDatasDoPeríodo(selectedPeriod), [selectedPeriod]);
+  const { eventos, loading, error, kpis } = useEvents(filters);
   const timelineData = groupEventsByDate(eventos);
   const distributionData = calculateDistribution(kpis);
 
@@ -114,7 +137,12 @@ function App() {
         </p>
       </footer>
 
-      <ChatBot />
+      <ChatBot
+        eventos={eventos}
+        kpis={kpis}
+        periodo={selectedPeriod}
+        dataSelecionada={selectedDate}
+      />
     </div>
   );
 }

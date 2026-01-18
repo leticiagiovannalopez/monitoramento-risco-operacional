@@ -75,38 +75,18 @@ export function groupEventsByDate(eventos) {
 }
 
 export function calculateDistribution(kpis) {
-  const total = kpis.total;
-  
-  if (total === 0) {
-    return [
-      { nivel: 'Crítico', valor: 0, percentual: 0 },
-      { nivel: 'Alto', valor: 0, percentual: 0 },
-      { nivel: 'Médio', valor: 0, percentual: 0 },
-      { nivel: 'Baixo', valor: 0, percentual: 0 }
-    ];
-  }
+  const colors = {
+    critico: '#ef4444',
+    alto: '#f97316',
+    medio: '#eab308',
+    baixo: '#22c55e'
+  };
 
   return [
-    {
-      nivel: 'Crítico',
-      valor: kpis.critico,
-      percentual: ((kpis.critico / total) * 100).toFixed(1)
-    },
-    {
-      nivel: 'Alto',
-      valor: kpis.alto,
-      percentual: ((kpis.alto / total) * 100).toFixed(1)
-    },
-    {
-      nivel: 'Médio',
-      valor: kpis.medio,
-      percentual: ((kpis.medio / total) * 100).toFixed(1)
-    },
-    {
-      nivel: 'Baixo',
-      valor: kpis.baixo,
-      percentual: ((kpis.baixo / total) * 100).toFixed(1)
-    }
+    { name: 'Crítico', value: kpis.critico || 0, color: colors.critico },
+    { name: 'Alto', value: kpis.alto || 0, color: colors.alto },
+    { name: 'Médio', value: kpis.medio || 0, color: colors.medio },
+    { name: 'Baixo', value: kpis.baixo || 0, color: colors.baixo }
   ];
 }
 

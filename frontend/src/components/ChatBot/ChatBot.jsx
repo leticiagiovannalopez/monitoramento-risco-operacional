@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, X, Minimize2, Sparkles } from 'lucide-react';
+import { MessageCircle, Send, X, Minimize2, Sparkles, RotateCcw } from 'lucide-react';
+import { useYoyoChat } from '../../hooks/useYoyoChat';
 import styles from './ChatBot.module.css';
 
 const initialMessages = [
@@ -11,7 +12,7 @@ const initialMessages = [
   }
 ];
 
-export function ChatBot() {
+export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada = null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
@@ -19,6 +20,7 @@ export function ChatBot() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const { sendMessage, loading, limparConversa } = useYoyoChat();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,8 +36,8 @@ export function ChatBot() {
     }
   }, [isOpen, isMinimized]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async () => {
+    if (!inputValue.trim() || loading) return;
 
     const userMessage = {
       id: Date.now(),
@@ -44,20 +46,39 @@ export function ChatBot() {
       time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     };
 
+    const mensagem = inputValue;
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
+    try {
+      const contextoTela = {
+        eventos: eventos.slice(0, 10),
+        kpis,
+        periodo,
+        data_selecionada: dataSelecionada
+      };
+
+      const response = await sendMessage(mensagem, contextoTela);
+
       const botResponse = {
         id: Date.now() + 1,
         type: 'bot',
-        text: 'Estou processando sua solicitação. Em breve a integração com IA estará disponível para análises mais detalhadas dos eventos de risco.',
+        text: response.resposta || 'Desculpe, não consegui processar sua mensagem.',
         time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, botResponse]);
+    } catch (err) {
+      const errorResponse = {
+        id: Date.now() + 1,
+        type: 'bot',
+        text: 'Desculpe, ocorreu um erro ao processar sua mensagem. Tente novamente.',
+        time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -106,6 +127,9 @@ export function ChatBot() {
               </div>
             </div>
             <div className={styles.headerActions}>
+              <button className={styles.headerButton} onClick={() => { limparConversa(); setMessages(initialMessages); }} title="Nova conversa">
+                <RotateCcw size={18} />
+              </button>
               <button className={styles.headerButton} onClick={minimizeChat}>
                 <Minimize2 size={18} />
               </button>

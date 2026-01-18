@@ -1,11 +1,16 @@
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 
 from database import get_eventos, get_evento_by_id
 from yoyo_service import processar_mensagem_yoyo
+
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
 
 app = FastAPI(
     title="API Monitoramento de Risco Operacional",
@@ -24,6 +29,8 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     mensagem: str
     contexto_tela: Optional[dict] = None
+    historico: Optional[List[ChatMessage]] = None
+    nome_usuario: Optional[str] = None
 
 
 @app.get("/")
@@ -60,9 +67,15 @@ def detalhe_evento(evento_id: str):
 
 @app.post("/api/yoyo/chat")
 def chat_yoyo(request: ChatRequest):
+    historico_dict = None
+    if request.historico:
+        historico_dict = [{"role": msg.role, "content": msg.content} for msg in request.historico]
+
     resultado = processar_mensagem_yoyo(
         mensagem=request.mensagem,
-        contexto_tela=request.contexto_tela
+        contexto_tela=request.contexto_tela,
+        historico=historico_dict,
+        nome_usuario=request.nome_usuario
     )
 
     return resultado
