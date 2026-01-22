@@ -79,10 +79,32 @@ def get_evento_by_id(evento_id):
 
     if resultado:
         colunas = ['evento_id', 'data_evento', 'data_resolucao', 'tempo_resolucao_horas',
-                   'nivel_risco', 'descricao', 'impacto_financeiro', 'impacto_cliente', 
+                   'nivel_risco', 'descricao', 'impacto_financeiro', 'impacto_cliente',
                    'clientes_afetados', 'tempo_indisponibilidade', 'frequencia_evento',
-                   'criticidade_sistema', 'falha_processo', 'fraude_interna', 
+                   'criticidade_sistema', 'falha_processo', 'fraude_interna',
                    'recorrencia', 'status', 'created_at']
         return dict(zip(colunas, resultado[0]))
-    
+
     return None
+
+def atualizar_status_evento(evento_id, novo_status):
+    status_validos = ['aberto', 'em_andamento', 'resolvido']
+    if novo_status not in status_validos:
+        return {"sucesso": False, "erro": f"Status inválido. Use: {', '.join(status_validos)}"}
+
+    conn = get_db_connection()
+    try:
+        conn.run(
+            """
+            UPDATE eventos_risco
+            SET status = :status
+            WHERE evento_id = :evento_id
+            """,
+            status=novo_status,
+            evento_id=evento_id
+        )
+        conn.close()
+        return {"sucesso": True, "evento_id": evento_id, "novo_status": novo_status}
+    except Exception as e:
+        conn.close()
+        return {"sucesso": False, "erro": str(e)}

@@ -229,8 +229,10 @@
 
 .messageText {
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .message.bot .messageText {

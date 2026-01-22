@@ -42,13 +42,14 @@ export async function fetchEventoById(eventoId) {
   }
 }
 
-export async function sendChatMessage(mensagem, contexto_tela = null, historico = null, nome_usuario = null) {
+export async function sendChatMessage(mensagem, contexto_tela = null, historico = null, nome_usuario = null, conversation_state = null) {
   try {
     const response = await api.post('/api/yoyo/chat', {
       mensagem,
       contexto_tela,
       historico,
-      nome_usuario
+      nome_usuario,
+      conversation_state
     }, {
       timeout: 30000
     });
@@ -66,6 +67,19 @@ export async function checkBackendHealth() {
   } catch (error) {
     console.error('Backend não está respondendo:', error);
     return { status: 'error', timestamp: new Date().toISOString() };
+  }
+}
+
+export async function atualizarStatusEvento(eventoId, novoStatus) {
+  try {
+    const response = await api.patch(`/api/eventos/${eventoId}/status`, {
+      evento_id: eventoId,
+      status: novoStatus
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    throw new Error('Falha ao atualizar status do evento.');
   }
 }
 

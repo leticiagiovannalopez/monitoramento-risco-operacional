@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
 
-from database import get_eventos, get_evento_by_id
+from database import get_eventos, get_evento_by_id, atualizar_status_evento
 from yoyo_service import processar_mensagem_yoyo
 
 
@@ -31,6 +31,11 @@ class ChatRequest(BaseModel):
     contexto_tela: Optional[dict] = None
     historico: Optional[List[ChatMessage]] = None
     nome_usuario: Optional[str] = None
+    conversation_state: Optional[str] = None
+
+class StatusUpdateRequest(BaseModel):
+    evento_id: str
+    status: str
 
 
 @app.get("/")
@@ -75,9 +80,17 @@ def chat_yoyo(request: ChatRequest):
         mensagem=request.mensagem,
         contexto_tela=request.contexto_tela,
         historico=historico_dict,
-        nome_usuario=request.nome_usuario
+        nome_usuario=request.nome_usuario,
+        conversation_state=request.conversation_state
     )
 
+    return resultado
+
+@app.patch("/api/eventos/{evento_id}/status")
+def atualizar_status(evento_id: str, request: StatusUpdateRequest):
+    resultado = atualizar_status_evento(evento_id, request.status)
+    if not resultado.get("sucesso"):
+        raise HTTPException(status_code=400, detail=resultado.get("erro"))
     return resultado
 
 @app.get("/health")

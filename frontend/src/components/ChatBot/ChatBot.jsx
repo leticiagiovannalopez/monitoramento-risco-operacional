@@ -3,24 +3,16 @@ import { MessageCircle, Send, X, Minimize2, Sparkles, RotateCcw } from 'lucide-r
 import { useYoyoChat } from '../../hooks/useYoyoChat';
 import styles from './ChatBot.module.css';
 
-const initialMessages = [
-  {
-    id: 1,
-    type: 'bot',
-    text: 'Olá! Sou a Yoyo, sua assistente de análise de risco operacional. Como posso ajudar você hoje?',
-    time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-  }
-];
-
 export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada = null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [conversaIniciada, setConversaIniciada] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const { sendMessage, loading, limparConversa } = useYoyoChat();
+  const { sendMessage, iniciarConversa, loading, limparConversa, nomeUsuario } = useYoyoChat();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -35,6 +27,87 @@ export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada
       inputRef.current?.focus();
     }
   }, [isOpen, isMinimized]);
+
+  const getContextoTela = () => {
+    let eventosFiltrados = eventos;
+
+    if (dataSelecionada) {
+      eventosFiltrados = eventos.filter(ev => {
+        const dataEvento = ev.data_evento?.split('T')[0];
+        return dataEvento === dataSelecionada;
+      });
+    }
+
+    return {
+      eventos: eventosFiltrados.slice(0, 15),
+      kpis,
+      periodo,
+      data_selecionada: dataSelecionada
+    };
+  };
+
+  const handleIniciarConversa = async () => {
+    if (conversaIniciada) return;
+
+    setIsTyping(true);
+    try {
+      const contextoTela = getContextoTela();
+
+      if (nomeUsuario) {
+        const kpisInfo = contextoTela.kpis;
+        const total = kpisInfo?.total || 0;
+        const critico = kpisInfo?.critico || 0;
+        const alto = kpisInfo?.alto || 0;
+
+        let resumo = `Olá de volta, ${nomeUsuario}! Estou vendo ${total} eventos no período selecionado`;
+        if (critico > 0 || alto > 0) {
+          const partes = [];
+          if (critico > 0) partes.push(`${critico} crítico${critico > 1 ? 's' : ''}`);
+          if (alto > 0) partes.push(`${alto} de alto risco`);
+          resumo += `, sendo ${partes.join(' e ')}`;
+        }
+        resumo += '.\n\nComo posso te ajudar?';
+
+        const botMessage = {
+          id: Date.now(),
+          type: 'bot',
+          text: resumo,
+          time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages([botMessage]);
+        setConversaIniciada(true);
+        setIsTyping(false);
+        return;
+      }
+
+      const response = await iniciarConversa(contextoTela);
+
+      const botMessage = {
+        id: Date.now(),
+        type: 'bot',
+        text: response.resposta,
+        time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages([botMessage]);
+      setConversaIniciada(true);
+    } catch (err) {
+      const errorMessage = {
+        id: Date.now(),
+        type: 'bot',
+        text: 'Desculpe, não consegui iniciar a conversa. Tente novamente.',
+        time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages([errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && !conversaIniciada && !isMinimized) {
+      handleIniciarConversa();
+    }
+  }, [isOpen, conversaIniciada, isMinimized]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || loading) return;
@@ -52,13 +125,7 @@ export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada
     setIsTyping(true);
 
     try {
-      const contextoTela = {
-        eventos: eventos.slice(0, 10),
-        kpis,
-        periodo,
-        data_selecionada: dataSelecionada
-      };
-
+      const contextoTela = getContextoTela();
       const response = await sendMessage(mensagem, contextoTela);
 
       const botResponse = {
@@ -97,6 +164,13 @@ export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada
     setIsMinimized(!isMinimized);
   };
 
+  const handleNovaConversa = () => {
+    limparConversa();
+    setMessages([]);
+    setConversaIniciada(false);
+    handleIniciarConversa();
+  };
+
   return (
     <>
       {!isOpen && (
@@ -127,7 +201,7 @@ export function ChatBot({ eventos = [], kpis = {}, periodo = '', dataSelecionada
               </div>
             </div>
             <div className={styles.headerActions}>
-              <button className={styles.headerButton} onClick={() => { limparConversa(); setMessages(initialMessages); }} title="Nova conversa">
+              <button className={styles.headerButton} onClick={handleNovaConversa} title="Nova conversa">
                 <RotateCcw size={18} />
               </button>
               <button className={styles.headerButton} onClick={minimizeChat}>
