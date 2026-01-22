@@ -2,11 +2,11 @@
 
 ## 📊 Descrição do Projeto
 
-Este projeto visa implementar uma solução completa para o monitoramento de **risco operacional** em transações financeiras e atividades bancárias. 
+Este projeto visa implementar uma solução completa para o monitoramento de **risco operacional** em transações financeiras e atividades bancárias.
 
 O sistema utiliza **Machine Learning** para classificar automaticamente eventos operacionais (falhas de sistema, fraudes, erros de processo) em quatro níveis de criticidade, resolvendo o problema de **triagem manual** de milhares de ocorrências diárias. Através da análise multidimensional considerando impacto financeiro, clientes afetados, tempo de indisponibilidade e criticidade do sistema, o projeto automatiza a priorização de ações corretivas, reduzindo tempo de resposta em eventos críticos e evitando perdas financeiras.
 
-Além da classificação automática, o sistema conta com **persistência em PostgreSQL** para análise histórica e futuramente integrará **IA Generativa** (assistente Yoyo) para auxiliar gestores na triagem e resolução de eventos através de recomendações inteligentes e interação conversacional.
+Além da classificação automática, o sistema conta com **persistência em PostgreSQL** para análise histórica e integra **IA Generativa** (assistente Yoyo) para auxiliar gestores na triagem e resolução de eventos através de recomendações inteligentes e interação conversacional.
 
 ## 💡 Objetivo
 
@@ -23,8 +23,11 @@ O objetivo principal é criar um sistema capaz de:
 - **Scikit-learn** (Random Forest, métricas)
 - **SMOTE** (Balanceamento de classes)
 - **PostgreSQL** (Banco de Dados Relacional)
+- **FastAPI** (Backend API REST)
+- **React** (Frontend)
+- **Google Gemini** (IA Generativa)
 - **Pandas/NumPy** (Manipulação de dados)
-- **Matplotlib** (Visualização)
+- **Recharts** (Gráficos interativos)
 - **Jupyter Notebook** (Prototipação e Exploração)
 - **GitHub** (Controle de Versão)
 
@@ -46,25 +49,27 @@ O objetivo principal é criar um sistema capaz de:
 - [x] Campo status para acompanhamento (pendente/em_andamento/resolvido)
 - [x] 5000 eventos salvos com classificação
 
-### 🔲 Fase 3 — IA Generativa e Assistente Yoyo (em andamento)
+### ✅ Fase 3 — IA Generativa e Assistente Yoyo (COMPLETA)
 
 - [x] Sistema de triagem inteligente por prioridade
 - [x] Chatbot Yoyo para gestão de eventos
 - [x] Recomendações de ação contextualizadas
-- [ ] Atualização de status conversacional
+- [x] Atualização de status conversacional
+- [x] Máquina de estados para conversa
+- [x] Persistência do nome do usuário
+- [x] Sugestões de próximas ações
 
-### 🔲 Fase 4 — Interface Web e Visualizações
+### ✅ Fase 4 — Interface Web e Visualizações (COMPLETA)
 
-- [ ] Dashboard em tempo real
-- [ ] Gráficos interativos (distribuição, impacto, temporal)
-- [ ] Área pública (registro de reclamações)
-- [ ] Área restrita (gestão com autenticação)
+- [x] Dashboard em tempo real
+- [x] Gráficos interativos (distribuição, impacto, temporal)
+- [x] Integração frontend/backend
 
 ### 🔲 Fase 5 — Otimizações e Deploy
 
+- [x] API REST para integração
 - [ ] Grid Search para hiperparâmetros
 - [ ] Ensemble de modelos
-- [ ] API REST para integração
 - [ ] Containerização e deploy
 
 ## 📝 Como Rodar o Projeto
@@ -92,9 +97,9 @@ jupyter notebook notebooks/01_exploracao_inicial.ipynb
 
 ## 🎯 Status do Projeto
 
-**Fase Atual:** 2/5 completas  
-**Próximo Milestone:** IA Generativa (Yoyo)  
+**Fase Atual:** 4/5 completas
+**Próximo Milestone:** Otimizações e Deploy
 
 ---
 
-**Desenvolvido por Yoyo 💜**
+**Desenvolvido por Leticia Lopez💜**
