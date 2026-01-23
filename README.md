@@ -432,4 +432,4 @@ A classificação automática libera tempo para o que realmente importa: resolve
 
 **Desenvolvido por Leticia Lopez**
 
-*Projeto de portfólio demonstrando aplicação prática de ML, IA Generativa e desenvolvimento fullstack.*
+*Projeto de portfólio demonstrando aplicação prática de ML, IA Generativa e Análise de dados para apoio à gestão de risco*
