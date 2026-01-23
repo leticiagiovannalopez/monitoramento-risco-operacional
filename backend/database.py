@@ -108,3 +108,110 @@ def atualizar_status_evento(evento_id, novo_status):
     except Exception as e:
         conn.close()
         return {"sucesso": False, "erro": str(e)}
+
+
+def get_estatisticas_completas():
+    conn = get_db_connection()
+
+    stats = {}
+
+    resultado = conn.run("""
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN nivel_risco = 'Crítico' THEN 1 ELSE 0 END) as criticos,
+            SUM(CASE WHEN nivel_risco = 'Alto' THEN 1 ELSE 0 END) as altos,
+            SUM(CASE WHEN nivel_risco = 'Médio' THEN 1 ELSE 0 END) as medios,
+            SUM(CASE WHEN nivel_risco = 'Baixo' THEN 1 ELSE 0 END) as baixos
+        FROM eventos_risco
+    """)
+    if resultado:
+        stats['total_eventos'] = resultado[0][0]
+        stats['criticos'] = resultado[0][1]
+        stats['altos'] = resultado[0][2]
+        stats['medios'] = resultado[0][3]
+        stats['baixos'] = resultado[0][4]
+
+    # Impacto financeiro total e médio
+    resultado = conn.run("""
+        SELECT
+            COALESCE(SUM(impacto_financeiro), 0) as total,
+            COALESCE(AVG(impacto_financeiro), 0) as media
+        FROM eventos_risco
+    """)
+    if resultado:
+        stats['impacto_financeiro_total'] = float(resultado[0][0])
+        stats['impacto_financeiro_medio'] = float(resultado[0][1])
+
+    # Total de clientes afetados
+    resultado = conn.run("""
+        SELECT COALESCE(SUM(clientes_afetados), 0) FROM eventos_risco
+    """)
+    if resultado:
+        stats['total_clientes_afetados'] = resultado[0][0]
+
+    # Distribuição por status
+    resultado = conn.run("""
+        SELECT
+            SUM(CASE WHEN status = 'aberto' THEN 1 ELSE 0 END) as abertos,
+            SUM(CASE WHEN status = 'em_andamento' THEN 1 ELSE 0 END) as em_andamento,
+            SUM(CASE WHEN status = 'resolvido' THEN 1 ELSE 0 END) as resolvidos
+        FROM eventos_risco
+    """)
+    if resultado:
+        stats['abertos'] = resultado[0][0]
+        stats['em_andamento'] = resultado[0][1]
+        stats['resolvidos'] = resultado[0][2]
+
+    # Período dos dados
+    resultado = conn.run("""
+        SELECT MIN(data_evento), MAX(data_evento) FROM eventos_risco
+    """)
+    if resultado and resultado[0][0]:
+        stats['data_mais_antiga'] = str(resultado[0][0])
+        stats['data_mais_recente'] = str(resultado[0][1])
+
+    conn.close()
+    return stats
+
+
+def get_top_eventos_criticos(limite=10):
+    """Retorna os eventos mais críticos ordenados por impacto"""
+    conn = get_db_connection()
+
+    resultado = conn.run("""
+        SELECT
+            evento_id, data_evento, nivel_risco, descricao,
+            impacto_financeiro, clientes_afetados, status
+        FROM eventos_risco
+        WHERE nivel_risco IN ('Crítico', 'Alto')
+        ORDER BY impacto_financeiro DESC
+        LIMIT :limite
+    """, limite=limite)
+
+    conn.close()
+
+    colunas = ['evento_id', 'data_evento', 'nivel_risco', 'descricao',
+               'impacto_financeiro', 'clientes_afetados', 'status']
+
+    return [dict(zip(colunas, ev)) for ev in resultado]
+
+
+def get_eventos_por_mes():
+    """Retorna contagem de eventos por mês"""
+    conn = get_db_connection()
+
+    resultado = conn.run("""
+        SELECT
+            TO_CHAR(data_evento, 'YYYY-MM') as mes,
+            COUNT(*) as total,
+            SUM(CASE WHEN nivel_risco = 'Crítico' THEN 1 ELSE 0 END) as criticos,
+            SUM(impacto_financeiro) as impacto_total
+        FROM eventos_risco
+        GROUP BY TO_CHAR(data_evento, 'YYYY-MM')
+        ORDER BY mes DESC
+        LIMIT 12
+    """)
+
+    conn.close()
+
+    return [{'mes': r[0], 'total': r[1], 'criticos': r[2], 'impacto': float(r[3] or 0)} for r in resultado]
