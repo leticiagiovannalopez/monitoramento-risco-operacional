@@ -4,6 +4,15 @@ import re
 import logging
 import time
 from dotenv import load_dotenv
+from database import (
+    get_estatisticas_completas,
+    get_top_eventos_criticos,
+    get_eventos_por_mes,
+    get_evento_by_id,
+    buscar_eventos_dinamico,
+    buscar_eventos_por_texto,
+    get_resumo_por_nivel
+)
 
 load_dotenv()
 
@@ -24,25 +33,41 @@ PROMPT_BASE = """
 Você é a Yoyo, assistente de apoio à gestão de risco operacional.
 
 REGRAS ABSOLUTAS:
-- Use APENAS as informações fornecidas no CONTEXTO.
-- NÃO invente dados, valores, causas, impactos ou ações.
+- Para DADOS e EVENTOS, use APENAS as informações fornecidas no CONTEXTO.
+- NÃO invente dados, valores, causas, impactos ou ações sobre eventos específicos.
 - NÃO faça suposições ou inferências além dos dados.
 - NÃO altere o nível de risco informado.
-- NÃO utilize conhecimento externo.
 - NÃO use expressões temporais relativas (hoje, ontem, agora).
+- EXCEÇÃO: Você PODE explicar conceitos teóricos sobre risco operacional quando perguntarem.
 - Utilize SEMPRE a data e horário exatamente como fornecidos.
 - Se não souber, responda: "Não tenho dados suficientes para responder isso."
 - NUNCA se apresente ou cumprimente novamente após a primeira interação.
 - NUNCA diga "Olá", "Oi" ou similares após a primeira mensagem.
 - Use o nome do usuário quando souber, de forma natural.
 
+CONHECIMENTO CONCEITUAL (você pode explicar isso quando perguntarem):
+- Risco operacional: é o risco de perdas resultantes de falhas em processos internos, pessoas, sistemas ou eventos externos. Em bancos, inclui fraudes, erros humanos, falhas de TI, problemas legais e desastres.
+- Níveis de risco (Crítico, Alto, Médio, Baixo): classificação baseada em impacto financeiro, clientes afetados, tempo de indisponibilidade e criticidade do sistema.
+- Impacto financeiro: valor monetário da perda causada pelo evento.
+- Clientes afetados: quantidade de pessoas impactadas pelo evento.
+- Status dos eventos: "aberto" (não iniciado), "em_andamento" (sendo tratado), "resolvido" (finalizado).
+- Exemplos de eventos: indisponibilidade de sistemas, fraudes internas/externas, falhas de processo, erros operacionais.
+
+ACESSO AOS DADOS:
+- Você tem acesso ao BANCO DE DADOS COMPLETO com todos os 5.000 eventos.
+- Você também vê os dados filtrados que aparecem na tela do usuário.
+- Use as ESTATÍSTICAS DO BANCO para responder perguntas sobre o histórico completo.
+- Use os DADOS DA TELA para responder perguntas sobre o período/filtro atual.
+- Quando o usuário mencionar um ID de evento (formato EVT-XXXXXXXXXXXXXX-XXXX), você receberá os detalhes completos desse evento automaticamente.
+- Você pode analisar qualquer evento do banco, basta o usuário informar o ID.
+
 ESCOPO:
 - Explicar eventos de risco operacional.
-- Analisar padrões nos dados exibidos na tela.
+- Analisar padrões nos dados (tanto da tela quanto do histórico completo).
 - Identificar eventos críticos considerando: impacto financeiro, quantidade de clientes afetados e nível de risco.
 - Justificar por que um evento é mais crítico que outro (ex: "Este evento é o mais crítico porque tem o maior impacto financeiro de R$ X e afeta Y clientes").
 - Sugerir ações iniciais quando solicitadas.
-- Responder perguntas sobre os dados visíveis.
+- Responder perguntas sobre dados históricos e tendências.
 - Quando perguntarem sobre eventos "mais críticos", analise e compare os dados, não apenas liste.
 - Você pode ajudar a atualizar o status de resolução dos eventos (aberto, em_andamento, resolvido).
 
@@ -63,6 +88,8 @@ SUGESTÕES DE AÇÕES (escolha as mais relevantes para cada situação):
 - "Listar eventos por quantidade de clientes afetados"
 - "Detalhar um evento específico"
 - "Ver resumo dos eventos críticos"
+- "Analisar tendência mensal de eventos"
+- "Ver estatísticas gerais do banco de dados"
 
 TOM:
 - Profissional e acolhedor.
@@ -70,7 +97,7 @@ TOM:
 - Técnico mas acessível.
 
 Você é assistente técnica de apoio à decisão, integrada ao sistema de monitoramento.
-Você TEM ACESSO aos dados da tela que serão fornecidos no contexto.
+Você TEM ACESSO ao banco de dados completo E aos dados da tela do usuário.
 """
 
 
@@ -91,6 +118,111 @@ class YoyoIA:
         ]
 
         self.greeting_words = ['oi', 'olá', 'ola', 'hey', 'hello', 'opa', 'e aí', 'eai', 'bom dia', 'boa tarde', 'boa noite']
+
+        self.evento_id_pattern = re.compile(r'EVT-\d{14}-\d{4}', re.IGNORECASE)
+
+        self.meses_map = {
+            'janeiro': '01', 'fevereiro': '02', 'março': '03', 'marco': '03',
+            'abril': '04', 'maio': '05', 'junho': '06', 'julho': '07',
+            'agosto': '08', 'setembro': '09', 'outubro': '10',
+            'novembro': '11', 'dezembro': '12'
+        }
+
+    def _detectar_consulta_inteligente(self, mensagem: str) -> dict:
+        mensagem_lower = mensagem.lower()
+        consulta = {'tipo': None, 'params': {}}
+
+        if any(p in mensagem_lower for p in ['crítico', 'critico', 'críticos', 'criticos']):
+            consulta['tipo'] = 'nivel'
+            consulta['params']['nivel_risco'] = 'Crítico'
+        elif any(p in mensagem_lower for p in ['alto risco', 'alto']):
+            consulta['tipo'] = 'nivel'
+            consulta['params']['nivel_risco'] = 'Alto'
+        elif any(p in mensagem_lower for p in ['médio', 'medio']):
+            consulta['tipo'] = 'nivel'
+            consulta['params']['nivel_risco'] = 'Médio'
+        elif any(p in mensagem_lower for p in ['baixo risco', 'baixo']):
+            consulta['tipo'] = 'nivel'
+            consulta['params']['nivel_risco'] = 'Baixo'
+
+        if any(p in mensagem_lower for p in ['aberto', 'abertos', 'pendente', 'pendentes']):
+            consulta['tipo'] = 'status'
+            consulta['params']['status'] = 'aberto'
+        elif any(p in mensagem_lower for p in ['em andamento', 'andamento', 'sendo tratado']):
+            consulta['tipo'] = 'status'
+            consulta['params']['status'] = 'em_andamento'
+        elif any(p in mensagem_lower for p in ['resolvido', 'resolvidos', 'fechado', 'fechados']):
+            consulta['tipo'] = 'status'
+            consulta['params']['status'] = 'resolvido'
+
+        if any(p in mensagem_lower for p in ['maior impacto', 'mais caro', 'mais caros', 'maior valor', 'maiores valores']):
+            consulta['params']['ordem'] = 'impacto'
+        elif any(p in mensagem_lower for p in ['mais clientes', 'mais afetados', 'maior número de clientes']):
+            consulta['params']['ordem'] = 'clientes'
+        elif any(p in mensagem_lower for p in ['mais recente', 'últimos', 'ultimos', 'recentes']):
+            consulta['params']['ordem'] = 'data'
+        elif any(p in mensagem_lower for p in ['indisponibilidade', 'mais tempo fora']):
+            consulta['params']['ordem'] = 'indisponibilidade'
+
+        for mes_nome, mes_num in self.meses_map.items():
+            if mes_nome in mensagem_lower:
+                ano_match = re.search(r'20\d{2}', mensagem_lower)
+                ano = ano_match.group() if ano_match else '2024'
+                consulta['tipo'] = 'mes'
+                consulta['params']['mes'] = f"{ano}-{mes_num}"
+                break
+
+        termos_busca = ['fraude', 'sistema', 'pix', 'transferência', 'cartão', 'cartao',
+                        'falha', 'erro', 'indisponibilidade', 'ataque', 'invasão']
+        for termo in termos_busca:
+            if termo in mensagem_lower and 'o que é' not in mensagem_lower and 'o que significa' not in mensagem_lower:
+                consulta['tipo'] = 'texto'
+                consulta['params']['termo'] = termo
+                break
+
+        if any(p in mensagem_lower for p in ['todos os eventos', 'resumo geral', 'visão geral', 'panorama']):
+            consulta['tipo'] = 'resumo_geral'
+
+        return consulta
+
+    def _buscar_dados_consulta(self, consulta: dict) -> list:
+        if not consulta.get('tipo'):
+            return []
+
+        try:
+            if consulta['tipo'] == 'nivel':
+                return buscar_eventos_dinamico(
+                    nivel_risco=consulta['params'].get('nivel_risco'),
+                    ordem=consulta['params'].get('ordem', 'impacto'),
+                    limite=20
+                )
+            elif consulta['tipo'] == 'status':
+                return buscar_eventos_dinamico(
+                    status=consulta['params'].get('status'),
+                    ordem=consulta['params'].get('ordem', 'impacto'),
+                    limite=20
+                )
+            elif consulta['tipo'] == 'mes':
+                return buscar_eventos_dinamico(
+                    mes=consulta['params'].get('mes'),
+                    ordem=consulta['params'].get('ordem', 'impacto'),
+                    limite=20
+                )
+            elif consulta['tipo'] == 'texto':
+                return buscar_eventos_por_texto(
+                    termo=consulta['params'].get('termo'),
+                    limite=15
+                )
+            elif consulta['tipo'] == 'resumo_geral':
+                return buscar_eventos_dinamico(
+                    ordem=consulta['params'].get('ordem', 'impacto'),
+                    limite=30
+                )
+        except Exception as e:
+            logger.error(f"Erro na busca dinâmica: {e}")
+            return []
+
+        return []
 
     def _extrair_nome(self, mensagem: str) -> str | None:
         mensagem_lower = mensagem.lower().strip()
@@ -127,6 +259,16 @@ class YoyoIA:
         mensagem_lower = mensagem.lower()
         apresentacoes = ['meu nome é', 'me chamo', 'pode me chamar de', 'sou o ', 'sou a ', 'eu sou ']
         return any(ap in mensagem_lower for ap in apresentacoes)
+
+    def _buscar_eventos_mencionados(self, mensagem: str) -> list:
+        ids_encontrados = self.evento_id_pattern.findall(mensagem.upper())
+        eventos = []
+        for evento_id in ids_encontrados:
+            evento = get_evento_by_id(evento_id)
+            if evento:
+                eventos.append(evento)
+                logger.info(f"Evento encontrado no banco: {evento_id}")
+        return eventos
 
     def processar(self, mensagem: str, contexto_tela: dict = None, historico: list = None,
                   nome_usuario: str = None, conversation_state: str = None):
@@ -288,6 +430,54 @@ class YoyoIA:
         if contexto_tela:
             prompt += "\n\n" + self._formatar_contexto_tela(contexto_tela)
 
+        eventos_buscados = self._buscar_eventos_mencionados(mensagem)
+        if eventos_buscados:
+            prompt += "\n\nEVENTOS BUSCADOS DO BANCO (mencionados pelo usuário):"
+            for ev in eventos_buscados:
+                impacto = ev.get('impacto_financeiro', 0)
+                prompt += f"""
+EVENTO: {ev.get('evento_id')}
+- Nível de risco: {ev.get('nivel_risco', 'N/A').upper()}
+- Data: {ev.get('data_evento', 'N/A')}
+- Descrição: {ev.get('descricao', 'Sem descrição')}
+- Impacto financeiro: R$ {impacto:,.2f}
+- Clientes afetados: {ev.get('clientes_afetados', 0)}
+- Tempo indisponibilidade: {ev.get('tempo_indisponibilidade', 0)} horas
+- Criticidade do sistema: {ev.get('criticidade_sistema', 'N/A')}/5
+- Status: {ev.get('status', 'N/A')}
+"""
+
+        consulta = self._detectar_consulta_inteligente(mensagem)
+        eventos_consulta = self._buscar_dados_consulta(consulta)
+
+        if eventos_consulta:
+            tipo_consulta = consulta.get('tipo', 'geral')
+            params = consulta.get('params', {})
+
+            descricao_busca = "EVENTOS ENCONTRADOS"
+            if tipo_consulta == 'nivel':
+                descricao_busca = f"EVENTOS DE NÍVEL {params.get('nivel_risco', '').upper()}"
+            elif tipo_consulta == 'status':
+                descricao_busca = f"EVENTOS COM STATUS '{params.get('status', '').upper()}'"
+            elif tipo_consulta == 'mes':
+                descricao_busca = f"EVENTOS DO MÊS {params.get('mes', '')}"
+            elif tipo_consulta == 'texto':
+                descricao_busca = f"EVENTOS RELACIONADOS A '{params.get('termo', '').upper()}'"
+            elif tipo_consulta == 'resumo_geral':
+                descricao_busca = "PRINCIPAIS EVENTOS DO BANCO (ordenados por impacto)"
+
+            prompt += f"\n\n{descricao_busca} ({len(eventos_consulta)} eventos encontrados):"
+
+            for i, ev in enumerate(eventos_consulta, 1):
+                impacto = ev.get('impacto_financeiro', 0)
+                prompt += f"""
+{i}. ID: {ev.get('evento_id')} - {ev.get('nivel_risco', 'N/A').upper()}
+   Data: {ev.get('data_evento', 'N/A')}
+   Descrição: {ev.get('descricao', 'Sem descrição')[:150]}
+   Impacto: R$ {impacto:,.2f} | Clientes: {ev.get('clientes_afetados', 0)} | Status: {ev.get('status', 'N/A')}"""
+
+            logger.info(f"Consulta inteligente: {tipo_consulta} - {len(eventos_consulta)} eventos encontrados")
+
         if historico and len(historico) > 0:
             prompt += "\n\nHISTÓRICO DA CONVERSA (mensagens recentes):"
             for msg in historico[-10:]:
@@ -300,14 +490,62 @@ class YoyoIA:
         return prompt
 
     def _formatar_contexto_tela(self, contexto: dict):
-        texto = "DADOS VISÍVEIS NA TELA DO USUÁRIO:"
+        texto = ""
+
+        try:
+            stats = get_estatisticas_completas()
+            top_criticos = get_top_eventos_criticos(5)
+            eventos_mes = get_eventos_por_mes()
+
+            texto += """ESTATÍSTICAS DO BANCO DE DADOS COMPLETO:"""
+            texto += f"""
+- Total de eventos no banco: {stats.get('total_eventos', 0)}
+- Eventos críticos: {stats.get('criticos', 0)}
+- Eventos alto risco: {stats.get('altos', 0)}
+- Eventos médio risco: {stats.get('medios', 0)}
+- Eventos baixo risco: {stats.get('baixos', 0)}
+- Impacto financeiro total: R$ {stats.get('impacto_financeiro_total', 0):,.2f}
+- Impacto financeiro médio: R$ {stats.get('impacto_financeiro_medio', 0):,.2f}
+- Total de clientes afetados: {stats.get('total_clientes_afetados', 0)}
+- Eventos abertos: {stats.get('abertos', 0)}
+- Eventos em andamento: {stats.get('em_andamento', 0)}
+- Eventos resolvidos: {stats.get('resolvidos', 0)}
+- Período dos dados: {stats.get('data_mais_antiga', 'N/A')} até {stats.get('data_mais_recente', 'N/A')}"""
+
+            if top_criticos:
+                texto += "\n\nTOP 5 EVENTOS MAIS CRÍTICOS (por impacto financeiro):"
+                for i, ev in enumerate(top_criticos, 1):
+                    impacto = ev.get('impacto_financeiro', 0)
+                    texto += f"""
+{i}. ID: {ev.get('evento_id')} - {ev.get('nivel_risco').upper()}
+   Impacto: R$ {impacto:,.2f} | Clientes: {ev.get('clientes_afetados', 0)} | Status: {ev.get('status', 'N/A')}"""
+
+            if eventos_mes:
+                texto += "\n\nEVENTOS POR MÊS (últimos meses):"
+                for mes in eventos_mes[:6]:
+                    texto += f"\n- {mes['mes']}: {mes['total']} eventos ({mes['criticos']} críticos) - Impacto: R$ {mes['impacto']:,.2f}"
+
+            resumo_nivel = get_resumo_por_nivel()
+            if resumo_nivel:
+                texto += "\n\nDETALHAMENTO POR NÍVEL DE RISCO:"
+                for nivel, dados in resumo_nivel.items():
+                    texto += f"""
+{nivel.upper()}: {dados['total']} eventos
+   - Impacto total: R$ {dados['impacto_total']:,.2f} | Médio: R$ {dados['impacto_medio']:,.2f}
+   - Clientes total: {dados['clientes_total']} | Médio: {dados['clientes_medio']:.0f}"""
+
+        except Exception as e:
+            logger.warning(f"Erro ao buscar estatísticas do banco: {e}")
+
+        texto += "\n\n" + "=" * 50
+        texto += "\nDADOS VISÍVEIS NA TELA DO USUÁRIO (filtro atual):"
 
         if contexto.get('kpis'):
             kpis = contexto['kpis']
             texto += f"""
 
-RESUMO DOS KPIs:
-- Total de eventos: {kpis.get('total', 0)}
+KPIs DO FILTRO ATUAL:
+- Total de eventos na tela: {kpis.get('total', 0)}
 - Eventos críticos: {kpis.get('critico', 0)}
 - Eventos alto risco: {kpis.get('alto', 0)}
 - Eventos médio risco: {kpis.get('medio', 0)}

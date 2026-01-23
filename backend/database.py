@@ -34,11 +34,11 @@ WHERE 1=1
     params = {}
 
     if data_inicio:
-        query += " AND data_evento >= :data_inicio"
+        query += " AND DATE(data_evento) >= :data_inicio"
         params["data_inicio"] = data_inicio
 
     if data_fim:
-        query += " AND data_evento <= :data_fim"
+        query += " AND DATE(data_evento) <= :data_fim"
         params["data_fim"] = data_fim
     
     if nivel_risco:
@@ -131,7 +131,6 @@ def get_estatisticas_completas():
         stats['medios'] = resultado[0][3]
         stats['baixos'] = resultado[0][4]
 
-    # Impacto financeiro total e médio
     resultado = conn.run("""
         SELECT
             COALESCE(SUM(impacto_financeiro), 0) as total,
@@ -142,14 +141,12 @@ def get_estatisticas_completas():
         stats['impacto_financeiro_total'] = float(resultado[0][0])
         stats['impacto_financeiro_medio'] = float(resultado[0][1])
 
-    # Total de clientes afetados
     resultado = conn.run("""
         SELECT COALESCE(SUM(clientes_afetados), 0) FROM eventos_risco
     """)
     if resultado:
         stats['total_clientes_afetados'] = resultado[0][0]
 
-    # Distribuição por status
     resultado = conn.run("""
         SELECT
             SUM(CASE WHEN status = 'aberto' THEN 1 ELSE 0 END) as abertos,
@@ -162,7 +159,6 @@ def get_estatisticas_completas():
         stats['em_andamento'] = resultado[0][1]
         stats['resolvidos'] = resultado[0][2]
 
-    # Período dos dados
     resultado = conn.run("""
         SELECT MIN(data_evento), MAX(data_evento) FROM eventos_risco
     """)
@@ -175,7 +171,6 @@ def get_estatisticas_completas():
 
 
 def get_top_eventos_criticos(limite=10):
-    """Retorna os eventos mais críticos ordenados por impacto"""
     conn = get_db_connection()
 
     resultado = conn.run("""
@@ -197,7 +192,6 @@ def get_top_eventos_criticos(limite=10):
 
 
 def get_eventos_por_mes():
-    """Retorna contagem de eventos por mês"""
     conn = get_db_connection()
 
     resultado = conn.run("""
@@ -215,3 +209,102 @@ def get_eventos_por_mes():
     conn.close()
 
     return [{'mes': r[0], 'total': r[1], 'criticos': r[2], 'impacto': float(r[3] or 0)} for r in resultado]
+
+
+def buscar_eventos_dinamico(nivel_risco=None, status=None, ordem='impacto', limite=20, mes=None):
+    conn = get_db_connection()
+
+    query = """
+        SELECT
+            evento_id, data_evento, nivel_risco, descricao,
+            impacto_financeiro, clientes_afetados,
+            tempo_indisponibilidade, criticidade_sistema, status
+        FROM eventos_risco
+        WHERE 1=1
+    """
+    params = {}
+
+    if nivel_risco:
+        query += " AND nivel_risco = :nivel_risco"
+        params["nivel_risco"] = nivel_risco
+
+    if status:
+        query += " AND status = :status"
+        params["status"] = status
+
+    if mes:
+        query += " AND TO_CHAR(data_evento, 'YYYY-MM') = :mes"
+        params["mes"] = mes
+
+    if ordem == 'impacto':
+        query += " ORDER BY impacto_financeiro DESC"
+    elif ordem == 'clientes':
+        query += " ORDER BY clientes_afetados DESC"
+    elif ordem == 'data':
+        query += " ORDER BY data_evento DESC"
+    elif ordem == 'indisponibilidade':
+        query += " ORDER BY tempo_indisponibilidade DESC"
+
+    query += " LIMIT :limite"
+    params["limite"] = limite
+
+    resultado = conn.run(query, **params)
+    conn.close()
+
+    colunas = ['evento_id', 'data_evento', 'nivel_risco', 'descricao',
+               'impacto_financeiro', 'clientes_afetados',
+               'tempo_indisponibilidade', 'criticidade_sistema', 'status']
+
+    return [dict(zip(colunas, ev)) for ev in resultado]
+
+
+def buscar_eventos_por_texto(termo, limite=15):
+    conn = get_db_connection()
+
+    resultado = conn.run("""
+        SELECT
+            evento_id, data_evento, nivel_risco, descricao,
+            impacto_financeiro, clientes_afetados, status
+        FROM eventos_risco
+        WHERE LOWER(descricao) LIKE LOWER(:termo)
+        ORDER BY impacto_financeiro DESC
+        LIMIT :limite
+    """, termo=f"%{termo}%", limite=limite)
+
+    conn.close()
+
+    colunas = ['evento_id', 'data_evento', 'nivel_risco', 'descricao',
+               'impacto_financeiro', 'clientes_afetados', 'status']
+
+    return [dict(zip(colunas, ev)) for ev in resultado]
+
+
+def get_resumo_por_nivel():
+    conn = get_db_connection()
+
+    niveis = ['Crítico', 'Alto', 'Médio', 'Baixo']
+    resumo = {}
+
+    for nivel in niveis:
+        resultado = conn.run("""
+            SELECT
+                COUNT(*) as total,
+                COALESCE(SUM(impacto_financeiro), 0) as impacto_total,
+                COALESCE(AVG(impacto_financeiro), 0) as impacto_medio,
+                COALESCE(SUM(clientes_afetados), 0) as clientes_total,
+                COALESCE(AVG(clientes_afetados), 0) as clientes_medio
+            FROM eventos_risco
+            WHERE nivel_risco = :nivel
+        """, nivel=nivel)
+
+        if resultado:
+            resumo[nivel] = {
+                'total': resultado[0][0],
+                'impacto_total': float(resultado[0][1]),
+                'impacto_medio': float(resultado[0][2]),
+                'clientes_total': resultado[0][3],
+                'clientes_medio': float(resultado[0][4])
+            }
+
+    conn.close()
+    return resumo

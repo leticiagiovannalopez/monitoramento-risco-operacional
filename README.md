@@ -226,26 +226,29 @@ REGRAS ABSOLUTAS:
 - Se não souber, responda: "Não tenho dados suficientes"
 ```
 
-### Contexto da Tela
+### Acesso aos Dados
 
-A Yoyo recebe os dados visíveis na tela do usuário:
+A Yoyo tem acesso completo ao banco de dados, não apenas à tela:
 
-```json
-{
-  "eventos": [...até 15 eventos],
-  "kpis": { "total": 5000, "critico": 184, "alto": 494 },
-  "periodo": "últimos 7 dias",
-  "data_selecionada": "2024-01-15"
-}
-```
+**Dados do banco completo:**
+- Estatísticas gerais (total, distribuição por risco, impacto financeiro)
+- Top 5 eventos mais críticos por impacto financeiro
+- Tendência mensal dos últimos 6 meses
+- Status de resolução (abertos, em andamento, resolvidos)
+
+**Dados da tela do usuário:**
+- Eventos filtrados pelo período selecionado
+- KPIs do filtro atual
 
 ### Funcionalidades
 
 1. **Análise de eventos**: Explica por que um evento é crítico
 2. **Priorização**: Sugere qual evento tratar primeiro
 3. **Padrões**: Identifica recorrências nos dados
-4. **Ações**: Recomenda próximos passos
-5. **Status**: Permite atualizar status via conversa
+4. **Tendências**: Analisa evolução mensal dos eventos
+5. **Estatísticas**: Responde sobre o histórico completo
+6. **Ações**: Recomenda próximos passos
+7. **Status**: Permite atualizar status via conversa
 
 ### Persistência do Usuário
 

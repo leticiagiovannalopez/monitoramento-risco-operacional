@@ -38,7 +38,12 @@ function App() {
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
   const [selectedDate, setSelectedDate] = useState('');
 
-  const filters = useMemo(() => calcularDatasDoPeríodo(selectedPeriod), [selectedPeriod]);
+  const filters = useMemo(() => {
+    if (selectedDate) {
+      return { data_inicio: selectedDate, data_fim: selectedDate };
+    }
+    return calcularDatasDoPeríodo(selectedPeriod);
+  }, [selectedPeriod, selectedDate]);
   const { eventos, loading, error, kpis } = useEvents(filters);
   const timelineData = groupEventsByDate(eventos);
   const distributionData = calculateDistribution(kpis);
