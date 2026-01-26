@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
 
-from database import get_eventos, get_evento_by_id, atualizar_status_evento
-from yoyo_service import processar_mensagem_yoyo
+from .database import get_eventos, get_evento_by_id, atualizar_status_evento
+from .yoyo_service import processar_mensagem_yoyo
 
 
 class ChatMessage(BaseModel):
@@ -20,7 +20,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://monitoramento-risco-operacional-fro.vercel.app",
+        "https://monitoramento-risco-operacional-frontend.vercel.app"
+        ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

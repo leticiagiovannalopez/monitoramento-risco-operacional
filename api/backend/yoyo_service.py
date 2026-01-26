@@ -4,7 +4,7 @@ import re
 import logging
 import time
 from dotenv import load_dotenv
-from database import (
+from .database import (
     get_estatisticas_completas,
     get_top_eventos_criticos,
     get_eventos_por_mes,
