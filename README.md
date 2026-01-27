@@ -1,5 +1,9 @@
 # Sistema de Monitoramento de Risco Operacional
 
+Este projeto é um **estudo de caso prático** que demonstra a aplicação de Machine Learning, IA Generativa e visualização de dados para apoiar a gestão de risco operacional em instituições financeiras.
+
+**Demonstração online da aplicação:** https://monitoramentooperacional.vercel.app/
+
 ## Contexto e Problema de Negócio
 
 Instituições financeiras lidam diariamente com milhares de eventos operacionais: falhas de sistema, erros de processo, tentativas de fraude e indisponibilidades. A triagem manual desses eventos é ineficiente e propensa a erros humanos, resultando em:
