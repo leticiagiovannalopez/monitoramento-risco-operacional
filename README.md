@@ -6,7 +6,7 @@ Este projeto é um **estudo de caso prático** que demonstra a aplicação de Ma
 
 > ⚠️ **Avisos:**
 > - Ao abrir o dashboard, use o filtro de período e selecione **"Últimos 12 meses"** para visualizar os eventos.
-> - O banco de dados está hospedado no plano gratuito do Supabase, que pausa o projeto após alguns dias de inatividade. Se os dados não carregarem, o banco pode estar pausado. Nesse caso, entre em contato comigo pelo [LinkedIn](https://www.linkedin.com/in/letícia-lopez-789aa9368/) que eu reativo.
+> - O banco de dados está hospedado no plano gratuito do Supabase, que pausa o projeto após alguns dias de inatividade. Se os dados não carregarem, o banco pode estar pausado. Nesse caso, entre em contato comigo pelo [LinkedIn](https://www.linkedin.com/in/leticiagiovannalopez) que eu reativo.
 
 
 ## Contexto e Problema de Negócio
