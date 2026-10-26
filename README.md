@@ -4,6 +4,11 @@ Este projeto é um **estudo de caso prático** que demonstra a aplicação de Ma
 
 **Demonstração online da aplicação:** https://monitoramentooperacional.vercel.app/
 
+> ⚠️ **Avisos:**
+> - Ao abrir o dashboard, use o filtro de período e selecione **"Últimos 12 meses"** para visualizar os eventos.
+> - O banco de dados está hospedado no plano gratuito do Supabase, que pausa o projeto após alguns dias de inatividade. Se os dados não carregarem, o banco pode estar pausado. Nesse caso, entre em contato comigo pelo [LinkedIn](https://www.linkedin.com/in/letícia-lopez-789aa9368/) que eu reativo.
+
+
 ## Contexto e Problema de Negócio
 
 Instituições financeiras lidam diariamente com milhares de eventos operacionais: falhas de sistema, erros de processo, tentativas de fraude e indisponibilidades. A triagem manual desses eventos é ineficiente e propensa a erros humanos, resultando em:
